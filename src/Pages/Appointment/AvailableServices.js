@@ -19,8 +19,7 @@ const AvailableServices = ({ date }) => {
  */
 
     const { data: services, isLoading, refetch } = useQuery(['available', formatedDate], () =>
-        fetch(`http://localhost:5000/availableServices?date=${formatedDate}`)
-            .then(res => res.json())
+        fetch(`http://localhost:5000/availableServices?date=${formatedDate}`).then(res => res.json())
     )
     if (isLoading) {
         return <Loading></Loading>

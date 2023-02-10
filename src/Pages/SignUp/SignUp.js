@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 import Loading from '../../Shared/Loading';
 import { Link, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
+import useToken from '../../Hooks/useToken';
 
 const SignUp = () => {
-    const [signInWithGoogle, user1, loading1, error1] = useSignInWithGoogle(auth);
+    const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
     const [sendEmailVerification, sending] = useSendEmailVerification(auth);
     const navigate = useNavigate();
 
@@ -18,28 +19,28 @@ const SignUp = () => {
         error,
     ] = useCreateUserWithEmailAndPassword(auth);
 
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
+    const { register, formState: { errors }, handleSubmit } = useForm();
+    const [token] = useToken(user || gUser);
+
     useEffect(() => {
-        if (user1 || user) {
-            console.log(user1 || user);
+        if (token) {
             signOut(auth);
             navigate('/login');
         }
-    }, [user, user1, navigate])
-
-    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
-    const { register, formState: { errors }, handleSubmit } = useForm();
+    }, [token, navigate]);
 
     const onSubmit = async (data) => {
         await createUserWithEmailAndPassword(data.email, data.password);
         await updateProfile({ displayName: data.name });
-        sendEmailVerification();
+        await sendEmailVerification();
     }
     let errorMessage;
-    if (loading1 || loading || updating || sending) {
+    if (gLoading || loading || updating || sending) {
         return <Loading></Loading>
     }
-    if (error1 || error || updateError) {
-        errorMessage = <p className='text-red-500'><small>{error1?.message || error?.message}</small></p>
+    if (gError || error || updateError) {
+        errorMessage = <p className='text-red-500'><small>{gError?.message || error?.message}</small></p>
     }
 
     return (

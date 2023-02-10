@@ -4,6 +4,7 @@ import auth from '../../firebase.init';
 import { useForm } from "react-hook-form";
 import Loading from '../../Shared/Loading';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import useToken from '../../Hooks/useToken';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -11,29 +12,30 @@ const Login = () => {
 
     let from = location.state?.from?.pathname || '/';
 
-    const [signInWithGoogle, user1, loading1, error1] = useSignInWithGoogle(auth);
+    const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
     const [
         signInWithEmailAndPassword,
-        user2,
-        loading2,
-        error2,
+        user,
+        loading,
+        error,
     ] = useSignInWithEmailAndPassword(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
+    const [token] = useToken(user || gUser)
 
     useEffect(() => {
-        if (user1 || user2) {
+        if (token) {
             navigate(from, { replace: true });
         }
-    }, [user1, user2, from, navigate])
+    }, [token, from, navigate]);
     const onSubmit = (data) => {
         signInWithEmailAndPassword(data.email, data.password);
     }
     let errorMessage;
-    if (loading1 || loading2) {
+    if (gLoading || loading) {
         return <Loading></Loading>
     }
-    if (error1 || error2) {
-        errorMessage = <p className='text-red-500'><small>{error1?.message || error2?.message}</small></p>
+    if (gError || error) {
+        errorMessage = <p className='text-red-500'><small>{gError?.message || error?.message}</small></p>
     }
 
     return (
