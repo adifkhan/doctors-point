@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { useQuery } from "react-query";
-import { toast } from "react-toastify";
+import auth from "../../firebase.init";
+import useAdminCheck from "../../Hooks/useAdminCheck";
 import Loading from "../../Shared/Loading";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 const AllDoctors = () => {
+  const [user] = useAuthState(auth);
+  const userEmail = user.email;
+  const [admin] = useAdminCheck(userEmail);
+  const [deletingDoc, setDeletingDoc] = useState(null);
+
   const {
     data: doctors,
     isLoading,
@@ -19,21 +27,6 @@ const AllDoctors = () => {
   if (isLoading) {
     return <Loading></Loading>;
   }
-
-  const deleteDoctor = (email) => {
-    fetch(`http://localhost:5000/doctor/${email}`, {
-      method: "DELETE",
-      headers: {
-        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.deletedCount) {
-          toast.success("Successfully Deleted!");
-        }
-      });
-  };
   refetch();
   return (
     <div className="mt-12 text-center">
@@ -42,13 +35,15 @@ const AllDoctors = () => {
         {doctors.map((doctor) => (
           <div key={doctor._id} className="card max-w-lg bg-base-100 shadow-xl">
             <div className="card-body">
-              <label
-                onClick={() => deleteDoctor(doctor.email)}
-                htmlFor="booking-modal"
-                className="btn btn-sm btn-circle absolute right-2 top-2"
-              >
-                ✕
-              </label>
+              {admin === true && (
+                <label
+                  onClick={() => setDeletingDoc(doctor)}
+                  htmlFor="delete-confimation"
+                  className="btn btn-sm btn-circle absolute right-2 top-2"
+                >
+                  ✕
+                </label>
+              )}
               <div className="flex items-center justify-around my-5">
                 <div className="avatar">
                   <div className="w-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
@@ -67,6 +62,13 @@ const AllDoctors = () => {
           </div>
         ))}
       </div>
+      {deletingDoc && (
+        <DeleteConfirmModal
+          docInfo={deletingDoc}
+          setDeletingDoc={setDeletingDoc}
+          refetch={refetch}
+        ></DeleteConfirmModal>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useQuery } from "react-query";
 import auth from "../../firebase.init";
+import useAdminCheck from "../../Hooks/useAdminCheck";
 import Loading from "../../Shared/Loading";
 
 const Users = () => {
@@ -20,9 +21,7 @@ const Users = () => {
 
   const [currentUser] = useAuthState(auth);
   const userEmail = currentUser.email;
-  const userState = users?.find((user) => user.email === userEmail);
-  const userRole = userState?.role;
-  // console.log(userRole);
+  const [admin] = useAdminCheck(userEmail);
 
   if (isLoading) {
     return <Loading></Loading>;
@@ -72,7 +71,7 @@ const Users = () => {
                 <td>{user.role}</td>
                 <td>
                   <button
-                    disabled={userRole !== "admin"}
+                    disabled={!admin}
                     onClick={() => changeRole(user)}
                     className="btn btn-xs"
                   >

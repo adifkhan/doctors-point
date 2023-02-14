@@ -1,11 +1,17 @@
 import React from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { useForm } from "react-hook-form";
 import { useQuery } from "react-query";
 import { toast } from "react-toastify";
+import auth from "../../firebase.init";
+import useAdminCheck from "../../Hooks/useAdminCheck";
 import Loading from "../../Shared/Loading";
 import AllDoctors from "./AllDoctors";
 
 const Doctors = () => {
+  const [user] = useAuthState(auth);
+  const userEmail = user.email;
+  const [admin] = useAdminCheck(userEmail);
   const {
     register,
     formState: { errors },
@@ -181,7 +187,12 @@ const Doctors = () => {
             </label>
           </div>
 
-          <input className="btn w-full max-w-xs" type="submit" value="Add" />
+          <input
+            disabled={!admin}
+            className="btn w-full max-w-xs"
+            type="submit"
+            value="Add"
+          />
         </form>
       </div>
 
